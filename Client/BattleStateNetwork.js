@@ -7,9 +7,8 @@ BS.initializeNetwork = function() {
 	BS.socket.on('sync time', BS.onSyncTime);
 	BS.socket.on('player join', BS.onPlayerJoin);
 	BS.socket.on('sync player list', BS.onSyncPlayerList);
-	// BS.socket.on('sync player action', BS.onSyncPlayerAction);
 	BS.socket.on('sync positions', BS.onSyncPositions)
-	// BS.socket.on('sync position', onSyncPosition)
+	BS.socket.on('fire', BS.onFire)
 }
 
 BS.finalizeNetwork = function() {
@@ -46,8 +45,9 @@ BS.onSyncPlayerList = function(playerList) {
 		}
 		else {
 			var msg = playerList[id];
-			var ship = new ShipClient(BS.world, BS.shipLayer, {color:msg.color});
+			var ship = new ShipClient(id, BS.world, BS.shipLayer, {color:msg.color});
 			ship.updateKinematicsByPackage(msg.kinematics);
+			ship.addWeapon(new VulcanClient());
 			var player = new PlayerClient(id, msg.color, ship);
 			BS.players[id] = player;
 		}
@@ -70,4 +70,19 @@ BS.onSyncPositions = function(shipList) {
 		var ship = player.ship;
 		ship.updateKinematicsByPredict(shipList[id]);
 	}
+}
+
+BS.onFire = function(msg) {
+	var player = BS.players[msg.id];
+	var ship = player.ship;
+	var weapon = ship.weapons[msg.weapon];
+	var bullet = weapon.fire(BS.world,
+		BS.bulletLayer,
+		player.id,
+		{x:msg.x,
+		y:msg.y,
+		angle:msg.angle,
+		color:ship.color,
+		contactGroup:ship.contactGroup});
+	BS.bulletMgr.addBullet(bullet);
 }

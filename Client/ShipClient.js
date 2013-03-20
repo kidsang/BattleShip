@@ -1,6 +1,5 @@
-
-ShipClient = function(world, layer, config) {
-	Ship.call(this, world, config);
+ShipClient = function(id, world, layer, config) {
+	Ship.call(this, id, world, config);
 
 	this.skin = new Kinetic.Polygon({
 		points:[12, 0, -12, -8, -12, 8],
@@ -52,7 +51,7 @@ ShipClient.prototype.updateKinematicsByAction = function() {
 ShipClient.prototype.updateSkin = function() {
 	var skin = this.skin;
 	var pos = this.body.GetPosition();
-	skin.setX(pos.x);
-	skin.setY(pos.y);
+	skin.setX(pos.x * Constants.drawScale);
+	skin.setY(pos.y * Constants.drawScale);
 	skin.setRotation(this.body.GetAngle());
 }

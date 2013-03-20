@@ -5,6 +5,9 @@ var Player = require('./Player.js');
 var Ship = require('./Ship.js');
 var Box2D = require('./Box2dWeb-2.1.a.3.min.js');
 var Constants = require('./Constants.js');
+var ContactsServer = require('./ContactsServer');
+var Vulcan = require('./Vulcan.js');
+var BulletManager = require('./BulletManager.js');
 
 var app = require('http').createServer(onHttpRequest);
 var io = require('socket.io').listen(app);
@@ -21,8 +24,15 @@ var b2Vec2 = Box2D.Common.Math.b2Vec2
 ,	b2DebugDraw = Box2D.Dynamics.b2DebugDraw
 ;
 var world = new b2World(new b2Vec2(0, 0), false);
+world.SetContactListener({
+	BeginContact:function(){},
+	EndContact:function(){},
+	PreSolve:ContactsServer.preSolve,
+	PostSolve:function(){}
+});
 
-var _colors = ["#0099ff", "#99ff00", "#ff9900", "9900ff", "#ff0099"];
+
+var _colors = ["#0099ff", "#99ff00", "#ff9900", "9900ff", "#ff0099", "#00ff99"];
 var _nextColor = 0;
 function getNextColor() {
 	var color = _colors[_nextColor];
@@ -31,6 +41,7 @@ function getNextColor() {
 }
 
 var players = {};
+var bulletMgr = new BulletManager();
 
 function start() {
 	app.listen(80);
@@ -39,6 +50,22 @@ function start() {
 	setInterval(gameLoop, Constants.frameInterval);
 	setInterval(syncPositions, Constants.posSyncInterval);
 	Log.info('Battle Ship Server started.');
+
+	// for debug
+	for (var i = 0; i < 3; ++i) {
+		var id = 'test' + i;
+		var clr = getNextColor();
+		var ship = new Ship(id, world, {
+			color:clr,
+			x:(100 + i * 100) / Constants.drawScale,
+			y:200 / Constants.drawScale
+		});
+		// ship.addWeapon(new Vulcan());
+
+		var player = new Player(id, clr, ship);
+		// player.socket = this;
+		players[player.id] = player;
+	}
 }
 
 function onHttpRequest(request, response) {
@@ -81,6 +108,7 @@ function onSocketsConnection(socket) {
 	socket.on('player join', onPlayerJoin);
 	socket.on('disconnect', onPlayerLeave);
 	socket.on('sync position', onSyncPosition);
+	socket.on('fire', onFire);
 	Log.debug('New connection: ' + socket.id);
 }
 
@@ -90,11 +118,13 @@ function onSyncTime() {
 
 function onPlayerJoin() {
 	var clr = getNextColor();
-	var ship = new Ship(world, {
+	var ship = new Ship(this.id, world, {
 		color:clr,
-		x:100,
-		y:100	
+		x:100 / Constants.drawScale,
+		y:100 / Constants.drawScale
 	});
+	ship.addWeapon(new Vulcan());
+
 	var player = new Player(this.id, clr, ship);
 	player.socket = this;
 	players[player.id] = player;
@@ -124,18 +154,6 @@ function syncPlayerList() {
 	io.sockets.emit('sync player list', playerList);
 }
 
-// // function onKeyAction(keyStr, isDown) {
-// // 	var player = players[this.id];
-// // 	player.setCtrl(keyStr, isDown);
-// // 	syncPlayerKeyAction(player.id, keyStr, isDown);
-// // 	// syncPosition(player);
-// // 	Log.debug('Player:' + player.id + (isDown ? ' key down:' : ' key up:') + keyStr);
-// // }
-
-// // function syncPlayerKeyAction(id, ctrlStr, isActive) {
-// // 	io.sockets.emit('sync player action', id, ctrlStr, isActive);
-// // }
-
 function syncPositions() {
 	var msg = {};
 	for (var id in players) {
@@ -151,47 +169,31 @@ function onSyncPosition(msg) {
 	if (!player)
 		return;
 	var ship = player.ship;
-	// ship.updateKinematicsByPredict(msg);
 	ship.updateKinematicsByPackage(msg);
 }
 
-// // function syncPosition(player) {
-// // 	io.sockets.emit('sync position', player.id, player.ship.getPosition());
-// // }
+function onFire(msg) {
+	msg.id = this.id;
+	io.sockets.emit('fire', msg);
 
-// var lastTime = 0;
-// var nowTime = 0;
-// var secDiff = 0;
+	var player = players[this.id];
+	var ship = player.ship;
+	var weapon = ship.weapons[msg.weapon];
+	var bullet = weapon.fire(world, player.id,
+	{
+		x:msg.x,
+		y:msg.y,
+		angle:msg.angle,
+		contactGroup:ship.contactGroup
+	});
+	bulletMgr.addBullet(bullet);
+}
 
 function gameLoop() {
+	bulletMgr.step();
 
 	world.Step(1 / Constants.frameRate, 1, 1);
 	world.ClearForces();
-// 	nowTime = (new Date()).getTime();
-// 	secDiff = (nowTime - lastTime) / 1000;
-
-// 	for (var id in players) {
-// 		var player = players[id];
-// 		var ship = player.ship;
-
-// 		// if (player.isCtrlActive('left')) {
-// 		// 	ship.turnLeft(secDiff);
-// 		// }
-// 		// else if (player.isCtrlActive('right')) {
-// 		// 	ship.turnRight(secDiff);
-// 		// }
-
-// 		// if (player.isCtrlActive('up')) {
-// 		// 	ship.speedUp(secDiff);
-// 		// }
-// 		// else if (player.isCtrlActive('down')){
-// 		// 	ship.slowDown(secDiff);
-// 		// }
-
-// 		// ship.updatePosition(nowTime);
-// 	}
-
-// 	lastTime = nowTime;
 }
 
 exports.start = start;

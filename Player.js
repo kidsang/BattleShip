@@ -8,4 +8,4 @@ Player.prototype.finalize = function() {
 	this.ship.finalize();
 }
 
-module.exports = Player;
+if (module) module.exports = Player;

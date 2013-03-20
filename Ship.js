@@ -2,23 +2,32 @@ if (module) Box2D = require('./Box2dWeb-2.1.a.3.min.js');
 if (module) GameObject = require('./GameObject.js');
 if (module) Constants = require('./Constants.js');
 
+if (module) Vulcan = require('./Vulcan.js');
 
 // params:config = {
 //  color 船的颜色，必须
 // }
-Ship = function(world, config) {
-	config.box = [12, 8];
+Ship = function(id, world, config) {
+	this.contactGroup = Ship.nextContactGroupIndex;
+	Ship.nextContactGroupIndex = (Ship.nextContactGroupIndex - 1) % 10086;
+	config.contactGroup = this.contactGroup;
+	config.box = [12 / Constants.drawScale, 8 / Constants.drawScale];
 	GameObject.call(this, world, config);
 
 	this.color = config.color;
+	this.id = id;
 
-	this.maxVelocity = 240;
-	this.minVelocity = 0;
-	this.acceleration = 2.667;
+	this.maxVelocity = 200 / Constants.drawScale;
+	this.minVelocity = 0 / Constants.drawScale;
+	this.acceleration = 2.667 / Constants.drawScale;
 	this.angularVelocity = 5;
 
 	this.actions = {};
+	this.weapons = [];
+	this.currentWeaponIndex = 0;
 };
+
+Ship.nextContactGroupIndex = -1;
 
 Ship.prototype = Object.create(GameObject.prototype);
 
@@ -68,5 +77,9 @@ Ship.prototype.updateKinematicsByPredict = function(pkg) {
 Ship.prototype.applyAction = function(action, isActive) {
 	this.actions[action] = isActive;
 };
+
+Ship.prototype.addWeapon = function(weapon) {
+	this.weapons.push(weapon);
+}
 
 if (module) module.exports = Ship;
