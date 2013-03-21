@@ -47,6 +47,9 @@ BS.onSyncPlayerList = function(playerList) {
 			var msg = playerList[id];
 			var ship = new ShipClient(id, BS.world, BS.shipLayer, {color:msg.color});
 			ship.updateKinematicsByPackage(msg.kinematics);
+			ship.addWeapon(new BombClient());
+			ship.addWeapon(new LaserClient());
+			ship.addWeapon(new MissileClient());
 			ship.addWeapon(new VulcanClient());
 			var player = new PlayerClient(id, msg.color, ship);
 			BS.players[id] = player;
@@ -70,6 +73,7 @@ BS.onSyncPositions = function(shipList) {
 		var ship = player.ship;
 		ship.updateKinematicsByPredict(shipList[id]);
 	}
+	// console.log((new Date()).getTime());
 }
 
 BS.onFire = function(msg) {

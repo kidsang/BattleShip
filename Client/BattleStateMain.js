@@ -4,6 +4,7 @@ BS.initialize = function() {
 	BS.myid = 0;
 	BS.players = {};
 	BS.bulletMgr = new BulletManager();
+	BS.explodeMgr = new ExplodeManager();
 	BS.weaponTags = [];
 
 	BS.bgLayer = new Kinetic.Layer();
@@ -31,21 +32,21 @@ BS.initialize = function() {
 		PostSolve:function(){}
 	});
 
-	var wconfig = {
-		type:2,
-		x:0,
-		y:stageHeight / 2 / Constants.drawScale,
-		box:[6 / Constants.drawScale, stageHeight / 2 / Constants.drawScale]
-	};
-	var leftWall = new GameObject(BS.world, wconfig)
-	wconfig.x = stageWidth / Constants.drawScale;
-	var rightWall = new GameObject(BS.world, wconfig)
-	wconfig.x = stageWidth / 2 / Constants.drawScale;
-	wconfig.y = 0;
-	wconfig.box = [stageWidth / 2 / Constants.drawScale, 6 / Constants.drawScale];
-	var topWall = new GameObject(BS.world, wconfig)
-	wconfig.y = stageHeight / Constants.drawScale;
-	var bottomWall = new GameObject(BS.world, wconfig)
+	// var wconfig = {
+	// 	type:2,
+	// 	x:0,
+	// 	y:stageHeight / 2 / Constants.drawScale,
+	// 	box:[6 / Constants.drawScale, stageHeight / 2 / Constants.drawScale]
+	// };
+	// var leftWall = new GameObject(BS.world, wconfig)
+	// wconfig.x = stageWidth / Constants.drawScale;
+	// var rightWall = new GameObject(BS.world, wconfig)
+	// wconfig.x = stageWidth / 2 / Constants.drawScale;
+	// wconfig.y = 0;
+	// wconfig.box = [stageWidth / 2 / Constants.drawScale, 6 / Constants.drawScale];
+	// var topWall = new GameObject(BS.world, wconfig)
+	// wconfig.y = stageHeight / Constants.drawScale;
+	// var bottomWall = new GameObject(BS.world, wconfig)
 
 	var debugDraw = new b2DebugDraw();
 	debugDraw.SetSprite(stage.getContent().firstChild.getContext("2d"));
@@ -76,6 +77,8 @@ BS.finalize = function() {
 	}
 	delete BS.players;
 
+	BS.explodeMgr.finalize();
+	delete BS.explodeMgr;
 	BS.bulletMgr.finalize();
 	delete BS.bulletMgr;
 
@@ -91,6 +94,7 @@ BS.finalize = function() {
 BS.mainLoop = function() {
 
 	BS.bulletMgr.step();
+	BS.explodeMgr.step();
 
 	BS.world.Step(1 / Constants.frameRate, 1, 1);
 	BS.world.ClearForces();
@@ -186,6 +190,9 @@ Keyboard.onKeyDown(function(event) {
 	if (keyStr != null) {
 		ship.applyAction(keyStr, true);
 	}
+	if (event.keyCode >= 49 && event.keyCode < 49 + ship.weapons.length) {
+		ship.currentWeaponIndex = event.keyCode - 49;
+	};
 });
 
 Keyboard.onKeyUp(function(event) {

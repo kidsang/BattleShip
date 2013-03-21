@@ -70,8 +70,22 @@ Ship.prototype.updateKinematicsByPredict = function(pkg) {
 	var lastAngle = this.body.GetAngle();
 	var pa = pkg.angle + secDiff * pkg.va;
 	var ta = pa - lastAngle;
-	var va = ta % Math.PI * scale;
+	// var va = ta % (Math.PI * 2) * scale;
+	var va = ta * scale;
 	this.body.SetAngularVelocity(va);
+
+	// var lastPos = this.body.GetPosition();
+	// var tx = pkg.x - lastPos.x;
+	// var ty = pkg.y - lastPos.y;
+	// var vx = tx * scale;
+	// var vy = ty * scale;
+	// this.body.SetLinearVelocity(new b2Vec2(vx, vy));
+
+	// var lastAngle = this.body.GetAngle();
+	// var ta = pkg.angle - lastAngle;
+	// // var va = ta % (Math.PI * 2) * scale;
+	// var va = ta * scale;
+	// this.body.SetAngularVelocity(va);
 }
 
 Ship.prototype.applyAction = function(action, isActive) {

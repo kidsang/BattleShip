@@ -7,6 +7,7 @@ VulcanBulletClient = function(world, layer, playerId, config) {
 		height:2,
 		fill:config.color
 	});
+	
 	layer.add(this.skin);
 	this.layer = layer;
 };
@@ -14,7 +15,6 @@ VulcanBulletClient = function(world, layer, playerId, config) {
 VulcanBulletClient.prototype = Object.create(VulcanBullet.prototype);
 
 VulcanBulletClient.prototype.finalize = function() {
-	this.explodeAni.skin.destroy();
 	this.skin.destroy();
 	VulcanBullet.prototype.finalize.call(this);
 };
@@ -27,6 +27,7 @@ VulcanBulletClient.prototype.explode = function() {
 	}
 	if (this.explodeAni.isFinished()) {
 		this.exploded = true;
+		this.explodeAni.skin.destroy();
 	}
 	else {
 		this.explodeAni.step();

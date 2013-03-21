@@ -10,7 +10,12 @@ BulletManager.prototype.finalize = function() {
 };
 
 BulletManager.prototype.addBullet = function(bullet) {
-	this.bullets.push(bullet);
+	if (Array.isArray(bullet)) {
+		this.bullets = this.bullets.concat(bullet);
+	}
+	else  {
+		this.bullets.push(bullet);
+	}
 };
 
 BulletManager.prototype.step = function() {
@@ -20,10 +25,11 @@ BulletManager.prototype.step = function() {
 			bullet.fly();
 		}
 		else {
+			if (!bullet.finalized)
+				bullet.finalize();
 			bullet.explode();
 		}
 		if (bullet.isExploded()) {
-			bullet.finalize();
 			this.bullets.splice(i, 1);
 		}
 	}
@@ -32,7 +38,8 @@ BulletManager.prototype.step = function() {
 BulletManager.prototype.updateSkin = function() {
 	for (var i in this.bullets) {
 		var bullet = this.bullets[i];
-		bullet.updateSkin();
+		if (!bullet.finalized)
+			bullet.updateSkin();
 	}
 };
 

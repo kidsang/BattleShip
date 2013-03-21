@@ -1,6 +1,10 @@
 if (module) GameObject = require('./GameObject');
 
 Bullet = function(world, playerId, config) {
+	var vx = Math.cos(config.angle) * config.speed;
+	var vy = Math.sin(config.angle) * config.speed;
+	config.vx = vx;
+	config.vy = vy;
 	GameObject.call(this, world, config);
 
 	this.playerId = playerId;

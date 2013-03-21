@@ -54,4 +54,4 @@ ShipClient.prototype.updateSkin = function() {
 	skin.setX(pos.x * Constants.drawScale);
 	skin.setY(pos.y * Constants.drawScale);
 	skin.setRotation(this.body.GetAngle());
-}
+};

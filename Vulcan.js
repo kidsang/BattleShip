@@ -11,9 +11,9 @@ Vulcan = function() {
 
 Vulcan.prototype = Object.create(Weapon.prototype);
 
-Vulcan.prototype.fire = function(world, playerid, config) {
+Vulcan.prototype.fire = function(world, playerId, config) {
 	Weapon.prototype.fire.apply(this);
-	return new VulcanBullet(world, playerid, config);
-}
+	return new VulcanBullet(world, playerId, config);
+};
 
 if (module) module.exports = Vulcan;

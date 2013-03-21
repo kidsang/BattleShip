@@ -55,10 +55,12 @@ GameObject = function(world, config) {
 	}
 
 	this.world = world;
+	this.finalized = false;
 };
 
 GameObject.prototype.finalize = function() {
 	this.world.DestroyBody(this.body);
+	this.finalized = true;
 }
 
 if (module) module.exports = GameObject;

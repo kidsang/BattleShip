@@ -7,6 +7,9 @@ var Box2D = require('./Box2dWeb-2.1.a.3.min.js');
 var Constants = require('./Constants.js');
 var ContactsServer = require('./ContactsServer');
 var Vulcan = require('./Vulcan.js');
+var Missile = require('./Missile.js');
+var Laser = require('./Laser.js');
+var Bomb = require('./Bomb.js');
 var BulletManager = require('./BulletManager.js');
 
 var app = require('http').createServer(onHttpRequest);
@@ -52,20 +55,20 @@ function start() {
 	Log.info('Battle Ship Server started.');
 
 	// for debug
-	for (var i = 0; i < 3; ++i) {
-		var id = 'test' + i;
-		var clr = getNextColor();
-		var ship = new Ship(id, world, {
-			color:clr,
-			x:(100 + i * 100) / Constants.drawScale,
-			y:200 / Constants.drawScale
-		});
-		// ship.addWeapon(new Vulcan());
+	// for (var i = 0; i < 3; ++i) {
+	// 	var id = 'test' + i;
+	// 	var clr = getNextColor();
+	// 	var ship = new Ship(id, world, {
+	// 		color:clr,
+	// 		x:(100 + i * 100) / Constants.drawScale,
+	// 		y:200 / Constants.drawScale
+	// 	});
+	// 	// ship.addWeapon(new Vulcan());
 
-		var player = new Player(id, clr, ship);
-		// player.socket = this;
-		players[player.id] = player;
-	}
+	// 	var player = new Player(id, clr, ship);
+	// 	// player.socket = this;
+	// 	players[player.id] = player;
+	// }
 }
 
 function onHttpRequest(request, response) {
@@ -123,6 +126,9 @@ function onPlayerJoin() {
 		x:100 / Constants.drawScale,
 		y:100 / Constants.drawScale
 	});
+	ship.addWeapon(new Bomb());
+	ship.addWeapon(new Laser());
+	ship.addWeapon(new Missile());
 	ship.addWeapon(new Vulcan());
 
 	var player = new Player(this.id, clr, ship);
@@ -170,6 +176,7 @@ function onSyncPosition(msg) {
 		return;
 	var ship = player.ship;
 	ship.updateKinematicsByPackage(msg);
+	// ship.updateKinematicsByPredict(msg);
 }
 
 function onFire(msg) {
@@ -197,3 +204,4 @@ function gameLoop() {
 }
 
 exports.start = start;
+exports.players = players;
