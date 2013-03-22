@@ -58,6 +58,7 @@ Ship.prototype.updateKinematicsByPredict = function(pkg) {
 	var secDiff = Constants.posSyncInterval / 1000.0;
 	var scale = 1 / secDiff;
 
+	// 预测
 	var lastPos = this.body.GetPosition();
 	var px = pkg.x + secDiff * pkg.vx;
 	var py = pkg.y + secDiff * pkg.vy;
@@ -70,10 +71,11 @@ Ship.prototype.updateKinematicsByPredict = function(pkg) {
 	var lastAngle = this.body.GetAngle();
 	var pa = pkg.angle + secDiff * pkg.va;
 	var ta = pa - lastAngle;
-	// var va = ta % (Math.PI * 2) * scale;
 	var va = ta * scale;
 	this.body.SetAngularVelocity(va);
 
+
+	// 保守
 	// var lastPos = this.body.GetPosition();
 	// var tx = pkg.x - lastPos.x;
 	// var ty = pkg.y - lastPos.y;
@@ -83,10 +85,10 @@ Ship.prototype.updateKinematicsByPredict = function(pkg) {
 
 	// var lastAngle = this.body.GetAngle();
 	// var ta = pkg.angle - lastAngle;
-	// // var va = ta % (Math.PI * 2) * scale;
 	// var va = ta * scale;
 	// this.body.SetAngularVelocity(va);
-}
+
+};
 
 Ship.prototype.applyAction = function(action, isActive) {
 	this.actions[action] = isActive;
@@ -94,6 +96,6 @@ Ship.prototype.applyAction = function(action, isActive) {
 
 Ship.prototype.addWeapon = function(weapon) {
 	this.weapons.push(weapon);
-}
+};
 
 if (module) module.exports = Ship;

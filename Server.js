@@ -51,7 +51,7 @@ function start() {
 	io.set('log level', 1);
 	io.sockets.on('connection', onSocketsConnection);
 	setInterval(gameLoop, Constants.frameInterval);
-	setInterval(syncPositions, Constants.posSyncInterval);
+	// setInterval(syncPositions, Constants.posSyncInterval);
 	Log.info('Battle Ship Server started.');
 
 	// for debug
@@ -160,44 +160,55 @@ function syncPlayerList() {
 	io.sockets.emit('sync player list', playerList);
 }
 
-function syncPositions() {
-	var msg = {};
-	for (var id in players) {
-		var player = players[id];
-		var ship = player.ship;
-		msg[id] = ship.getKinematicsPackage();
-	}
-	io.sockets.emit('sync positions', msg);
-}
+// function syncPositions() {
+// 	var msg = {};
+// 	for (var id in players) {
+// 		var player = players[id];
+// 		var ship = player.ship;
+// 		msg[id] = ship.getKinematicsPackage();
+// 	}
+// 	io.sockets.emit('sync positions', msg);
+// }
 
 function onSyncPosition(msg) {
 	var player = players[this.id];
 	if (!player)
 		return;
 	var ship = player.ship;
-	ship.updateKinematicsByPackage(msg);
-	// ship.updateKinematicsByPredict(msg);
+	// ship.updateKinematicsByPackage(msg);
+	ship.updateKinematicsByPredict(msg);
+
+	var a = {};
+	a[player.id] = msg;
+	io.sockets.emit('sync positions', a);
 }
 
 function onFire(msg) {
-	msg.id = this.id;
-	io.sockets.emit('fire', msg);
-
 	var player = players[this.id];
 	var ship = player.ship;
 	var weapon = ship.weapons[msg.weapon];
-	var bullet = weapon.fire(world, player.id,
-	{
-		x:msg.x,
-		y:msg.y,
-		angle:msg.angle,
-		contactGroup:ship.contactGroup
-	});
-	bulletMgr.addBullet(bullet);
+	if (weapon.canFire()) {
+		var bullet = weapon.fire(world, player.id, {
+			x:msg.x,
+			y:msg.y,
+			angle:msg.angle,
+			contactGroup:ship.contactGroup
+		});
+		bulletMgr.addBullet(bullet);
+		msg.id = this.id;
+		io.sockets.emit('fire', msg);
+	}
 }
 
 function gameLoop() {
 	bulletMgr.step();
+	for (var id in players) {
+		var ship = players[id].ship;
+		for (var index in ship.weapons) {
+			var weapon = ship.weapons[index];
+			weapon.coldDown();
+		}
+	}
 
 	world.Step(1 / Constants.frameRate, 1, 1);
 	world.ClearForces();

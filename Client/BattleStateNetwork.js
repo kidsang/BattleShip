@@ -1,6 +1,6 @@
 BS.initializeNetwork = function() {
 	// var host = '192.168.0.108';
-	var host = '192.168.1.100';
+	var host = '192.168.1.101';
 	// var host = '192.168.1.103';
 	BS.socket = io.connect(host);
 	BS.socket.on('connect', BS.onConnect);
