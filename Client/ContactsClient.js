@@ -4,7 +4,7 @@ Contacts._bulletHitShip = function(bullet, ship) {
 	// BS.bulletLayer.add(ani.skin);
 	// Contacts.push(ani);
 	var pos = ship.body.GetPosition();
-	BS.explodeMgr.createExplode(pos.x, pos.y);
+	_currentState.explodeMgr.createExplode(pos.x, pos.y);
 };
 
 Contacts.explodes = [];

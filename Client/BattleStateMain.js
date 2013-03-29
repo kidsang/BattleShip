@@ -3,7 +3,6 @@ BattleState = function(msg) {
 	this.socket = msg.socket;
 	this.players = {};
 	this.bulletMgr = new BulletManager();
-	this.explodeMgr = new ExplodeManager();
 
 	this.layer = new Kinetic.Layer();
 	stage.add(this.layer);
@@ -11,6 +10,8 @@ BattleState = function(msg) {
 	this.layer.add(this.bulletLayer);
 	this.shipLayer = new Kinetic.Group();
 	this.layer.add(this.shipLayer);
+	this.explodeLayer = new Kinetic.Group();
+	this.layer.add(this.explodeLayer);
 	this.mapLayer = new Kinetic.Group();
 	this.layer.add(this.mapLayer);
 
@@ -19,6 +20,8 @@ BattleState = function(msg) {
 
 	this.debugLayer = new Kinetic.Layer();
 	stage.add(this.debugLayer);
+
+	this.explodeMgr = new ExplodeManager(this.explodeLayer);
 
 	this.world = new b2World(new b2Vec2(0, 0), false);
 	this.world.SetContactListener({

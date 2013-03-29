@@ -1,12 +1,13 @@
-ExplodeManager = function() {
+ExplodeManager = function(layer) {
 	this.explodes = [];
+	this.layer = layer;
 };
 
 ExplodeManager.prototype.createExplode = function(x, y) {
 	var dx = x * Constants.drawScale + Math.random() * 10 - 5;
 	var dy = y * Constants.drawScale + Math.random() * 10 - 5;
 	var ani  = new Explode(dx, dy);
-	BS.bulletLayer.add(ani.skin);
+	this.layer.add(ani.skin);
 	this.explodes.push(ani);
 };
 
