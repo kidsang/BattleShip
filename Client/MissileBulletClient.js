@@ -28,7 +28,7 @@ MissileBulletClient.prototype.finalize = function() {
 MissileBulletClient.prototype.fly = function() {
 	var nowSec = (new Date()).getTime();
 	if (nowSec - this.fireTime > 500) {
-		var nearest = this._findNearestShip(BS.players);
+		var nearest = this._findNearestShip(_currentState.players);
 		if (nearest)
 			this._trace(nearest);
 	}

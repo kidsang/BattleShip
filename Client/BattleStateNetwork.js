@@ -1,92 +1,87 @@
-BS.initializeNetwork = function() {
-	// var host = '192.168.0.108';
-	var host = '192.168.1.101';
-	// var host = '192.168.1.103';
-	BS.socket = io.connect(host);
-	BS.socket.on('connect', BS.onConnect);
-	BS.socket.on('sync time', BS.onSyncTime);
-	BS.socket.on('player join', BS.onPlayerJoin);
-	BS.socket.on('sync player list', BS.onSyncPlayerList);
-	BS.socket.on('sync positions', BS.onSyncPositions)
-	BS.socket.on('fire', BS.onFire)
-}
+BattleState.prototype.initializeNetwork = function() {
+	var that = this;
+	var socket = this.socket;
+	var players = this.players;
+	var world = this.world;
 
-BS.finalizeNetwork = function() {
-	BS.socket.removeAllListeners();
-	delete BS.socket;
-}
-
-BS.onConnect = function() {
-	BS.lastPingTime = (new Date()).getTime();
-	BS.socket.emit('sync time');
-}
-
-BS.onSyncTime = function(serverTime) {
-	var localTime = (new Date()).getTime();
-	var netDelay = localTime - BS.lastPingTime;
-	scTimeDiff = serverTime - localTime + netDelay / 2;
-	delete BS.lastPingTime;
-	BS.socket.emit('player join');
-}
-
-BS.onPlayerJoin = function(id) {
-	BS.myid = id;
-}
-
-BS.onSyncPlayerList = function(playerList) {
-	var current = {};
-	for (var id in BS.players) {
-		current[id] = true;
-	}
-
-	for (var id in playerList) {
-		if (current[id]) {
-			delete current[id];
+	socket.on(Proto.SYNC_PLAYER_LIST, function(playerList) {
+		var current = {};
+		for (var id in that.players) {
+			current[id] = true;
 		}
-		else {
-			var msg = playerList[id];
-			var ship = new ShipClient(id, BS.world, BS.shipLayer, {color:msg.color});
-			ship.updateKinematicsByPackage(msg.kinematics);
-			ship.addWeapon(new BombClient());
-			ship.addWeapon(new LaserClient());
-			ship.addWeapon(new MissileClient());
-			ship.addWeapon(new VulcanClient());
-			var player = new PlayerClient(id, msg.color, ship);
-			BS.players[id] = player;
+
+		for (var id in playerList) {
+			if (current[id]) {
+				delete current[id];
+			}
+			else {
+				var msg = playerList[id];
+				var ship = new ShipClient(id, that.world, that.shipLayer, {color:msg.color});
+				ship.updateKinematicsByPackage(msg.kinematics);
+				ship.addWeapon(new BombClient());
+				ship.addWeapon(new LaserClient());
+				ship.addWeapon(new MissileClient());
+				ship.addWeapon(new VulcanClient());
+				var player = new PlayerClient(id, msg.color);
+				player.ship = ship;
+				that.players[id] = player;
+				if (id == that.myid) {
+					that.initializeUI();
+				}
+			}
 		}
-	}
 
-	for (var id in current) {
-		var player = BS.players[id];
-		player.finalize();
-		delete BS.players[id];
-	}
-}
+		for (var id in current) {
+			var player = that.players[id];
+			player.finalize();
+			delete that.players[id];
+		}
+	});
 
-BS.onSyncPositions = function(shipList) {
-	for (var id in shipList) {
-		if (id == BS.myid)
-			continue;
-		var player = BS.players[id];
+	socket.on(Proto.FIRE, function(msg) {
+		var player = players[msg.id];
 		if (!player)
-			continue;
+			return;
 		var ship = player.ship;
-		ship.updateKinematicsByPredict(shipList[id]);
-	}
-	// console.log((new Date()).getTime());
-}
+		var weapon = ship.weapons[msg.weapon];
+		var bullet = weapon.fire(world,
+			that.bulletLayer,
+			player.id,
+			{
+				x:msg.x,
+				y:msg.y,
+				angle:msg.angle,
+				color:ship.color,
+				contactGroup:ship.contactGroup
+			});
+		that.bulletMgr.addBullet(bullet);
+	});
 
-BS.onFire = function(msg) {
-	var player = BS.players[msg.id];
-	var ship = player.ship;
-	var weapon = ship.weapons[msg.weapon];
-	var bullet = weapon.fire(BS.world,
-		BS.bulletLayer,
-		player.id,
-		{x:msg.x,
-		y:msg.y,
-		angle:msg.angle,
-		color:ship.color,
-		contactGroup:ship.contactGroup});
-	BS.bulletMgr.addBullet(bullet);
-}
+	socket.on(Proto.SYNC_POSITIONS, function(shipList) {
+		for (var id in shipList) {
+			if (id == that.myid)
+				continue;
+			var player = players[id];
+			if (!player)
+				continue;
+			var ship = player.ship;
+			ship.updateKinematicsByPredict(shipList[id]);
+		}
+	});
+
+	this.syncLoop = setInterval(function(){
+		if (!players[that.myid])
+			return;
+		var ship = players[that.myid].ship;
+		var msg = ship.getKinematicsPackage();
+		socket.emit(Proto.UPLOAD_POSITION, msg);
+	}, 1000/10);
+
+	socket.emit(Proto.PLAYER_JOIN, myname);
+};
+
+BattleState.prototype.finalizeNetwork = function() {
+	clearInterval(this.syncLoop);
+	this.socket.removeAllListeners();
+	delete this.socket;
+};

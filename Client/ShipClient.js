@@ -1,14 +1,24 @@
 ShipClient = function(id, world, layer, config) {
 	Ship.call(this, id, world, config);
 
-	this.skin = new Kinetic.Polygon({
+	this.skin = new Kinetic.Group({});
+	layer.add(this.skin);
+
+	var fill = new Kinetic.Polygon({
 		points:[12, 0, -12, -8, -12, 8],
 		fill:config.color,
-		stroke:'black',
-		strokeWidth:'1',
+		opacity:0.3,
 		listening:false
 	});
-	layer.add(this.skin);
+	this.skin.add(fill);
+
+	var border = new Kinetic.Polygon({
+		points:[12, 0, -12, -8, -12, 8],
+		stroke:config.color,
+		strokeWidth:'2',
+		listening:false
+	});
+	this.skin.add(border);
 
 	this.layer = layer;
 };

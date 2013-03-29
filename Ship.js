@@ -40,7 +40,7 @@ Ship.prototype.getKinematicsPackage = function(createTime) {
 	var vel = this.body.GetLinearVelocity();
 	pkg.vx = vel.x;
 	pkg.vy = vel.y;
-	pkg.angle = this.body.GetAngle();
+	pkg.angle = this.body.GetAngle() % (Math.PI * 2);
 	pkg.va = this.body.GetAngularVelocity();
 	return pkg;
 };

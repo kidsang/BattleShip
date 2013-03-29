@@ -1,5 +1,5 @@
-var PlayerClient = function(id, color, ship) {
-	Player.call(this, id, color, ship);
+var PlayerClient = function(id, color) {
+	Player.call(this, id, color);
 }
 
 PlayerClient.prototype = Object.create(Player.prototype);

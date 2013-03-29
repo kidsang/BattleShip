@@ -8,11 +8,11 @@ var Keyboard = {
 		Keyboard._onUpEvents[callback] = callback;
 	},
 
-	removeKeyDown:function(callback) {
+	offKeyDown:function(callback) {
 		delete Keyboard._onDownEvents[callback];
 	},
 
-	removeKeyUp:function(callback) {
+	offKeyUp:function(callback) {
 		delete Keyboard._onUpEvents[callback];
 	},
 

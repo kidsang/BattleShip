@@ -1,11 +1,12 @@
-Player = function(id, color, ship) {
+Player = function(id, color) {
 	this.id = id;
 	this.color = color;
-	this.ship = ship;
+	this.ship = null;
 };
 
 Player.prototype.finalize = function() {
-	this.ship.finalize();
+	if (this.ship)
+		this.ship.finalize();
 }
 
 if (module) module.exports = Player;

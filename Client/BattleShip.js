@@ -1,22 +1,24 @@
-var stageWidth = 600;
-var stageHeight = 400;
-var stage = new Kinetic.Stage({
+stage = new Kinetic.Stage({
 	container:'canvas',
-	width:stageWidth,
-	height:stageHeight
+	width:Constants.stageWidth,
+	height:Constants.stageHeight
 });
+document.getElementById('canvas').getElementsByTagName('div')[0].style.position = 'absolute';
 
+setInterval(_mainLoop, 1000 / 60);
 
-var b2Vec2 = Box2D.Common.Math.b2Vec2
-,	b2BodyDef = Box2D.Dynamics.b2BodyDef
-,	b2Body = Box2D.Dynamics.b2Body
-,	b2FixtureDef = Box2D.Dynamics.b2FixtureDef
-,	b2Fixture = Box2D.Dynamics.b2Fixture
-,	b2World = Box2D.Dynamics.b2World
-,	b2MassData = Box2D.Collision.Shapes.b2MassData
-,	b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape
-,	b2CircleShape = Box2D.Collision.Shapes.b2CircleShape
-,	b2DebugDraw = Box2D.Dynamics.b2DebugDraw
-;
+_currentState = null;
 
-BS.initialize();
+function _mainLoop() {
+	if (_currentState)
+		_currentState.step();
+	// stage.draw();
+}
+
+function jumpTo(state, msg) {
+	if (_currentState)
+		_currentState.finalize();
+	_currentState = state ? new state(msg) : null;
+}
+
+myname = '玩家';
