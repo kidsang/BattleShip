@@ -23,8 +23,14 @@ var sockets = {};
 var players = {};
 var battleFields = {};
 
-function start() {
-	app.listen(80);
+function start(deploy) {
+	if (deploy) {
+		app.listen(8088);
+		__deploy = true;
+	}
+	else {
+		app.listen(80);
+	}
 	io.set('log level', 1);
 	io.sockets.on('connection', onSocketsConnection);
 	Log.info('Battle Ship Game Center started.');
@@ -34,37 +40,64 @@ function onHttpRequest(request, response) {
 	var path = URL.parse(request.url).pathname;
 
 	if (path == '/') {
-		path = './Client/index.html';
+		var html = '\
+		<!DOCTYPE HTML>\
+		<html>\
+		<head>\
+		<title>Battle Ship</title>\
+		<meta charset="UTF-8"/>\
+		';
+		if (__deploy) {
+			html += '<script>__deploy=true;</script>';
+		}
+		html += '\
+		</head>\
+		<body id="body">\
+		<div id="canvas" style="width:800px; height:450px; margin:0 auto; border: 2px solid #333;"></div>\
+		<script src="Client/SkipNodejs.js"></script>\
+		<script src="Client/kinetic-v4.4.0.js"></script>\
+		<script src="Constants.js"></script>\
+		<script src="Client/BattleShip.js"></script>\
+		<script src="Client/Resource.js"></script>\
+		<script src="Client/UI/UI.js"></script>\
+		<script src="Client/LoadingStateMain.js"></script>\
+		<script>\
+		jumpTo(LoadingState);\
+		</script>\
+		</body>\
+		</html>\
+		';
+		response.writeHead(200, 'text/html');
+		response.end(html);
 	}
 	else {
 		path = '.' + path;
+		FileSystem.exists(path, function(exists) {
+			if (exists) {
+				FileSystem.readFile(path, function(err, data) {
+					if (err) {
+						response.writeHead(500);
+						response.end(err);
+						Log.error('Error loading ' + path + '\n');
+					}
+					else {
+						var ext = path.substr(path.lastIndexOf('.')+1);
+						var ct = mime[ext];
+						if (!ct)
+							ct = 'text/plain';
+						response.writeHead(200, {'Content-Type':ct});
+						response.end(data);
+						Log.debug('Loaded ' + path);
+					}
+				});
+			}
+			else {
+				response.writeHead(404);
+				response.end('Can not find ' + path);
+				Log.error('Can not find ' + path);
+			}
+		});
 	}
-
-	FileSystem.exists(path, function(exists) {
-		if (exists) {
-			FileSystem.readFile(path, function(err, data) {
-				if (err) {
-					response.writeHead(500);
-					response.end(err);
-					Log.error('Error loading ' + path + '\n');
-				}
-				else {
-					var ext = path.substr(path.lastIndexOf('.')+1);
-					var ct = mime[ext];
-					if (!ct)
-						ct = 'text/plain';
-					response.writeHead(200, {'Content-Type':ct});
-					response.end(data);
-					Log.debug('Loaded ' + path);
-				}
-			});
-		}
-		else {
-			response.writeHead(404);
-			response.end('Can not find ' + path);
-			Log.error('Can not find ' + path);
-		}
-	});
 
 }
 

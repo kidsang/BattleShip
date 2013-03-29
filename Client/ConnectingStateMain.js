@@ -28,6 +28,8 @@ ConnectingState = function(msg) {
 	this.total = 4;
 
 	var host = '192.168.1.101';
+	if (__deploy)
+		host = 'http://battleship.chidongxi.me/';
 	var socket = io.connect(host);
 	this.socket = socket;
 

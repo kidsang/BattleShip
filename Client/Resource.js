@@ -16,9 +16,13 @@ Resource = {
 		"Client/CreateOrJoinStateMain.js",
 		"Client/CreateRoomStateMain.js",
 		"Client/ConnectingStateMain.js",
+		"Client/BattleStateMain.js",
+		"Client/BattleStateNetwork.js",
+		"Client/BattleStateUI.js",
+		"Client/Schedule.js",
 
 		"Proto/Proto.js",
-		
+
 		"MapGen.js",
 		"Map.js",
 		"Client/MapClient.js",
@@ -51,10 +55,7 @@ Resource = {
 
 		"Client/Keyboard.js",
 		"Contacts.js",
-		"Client/ContactsClient.js",
-		"Client/BattleStateMain.js",
-		"Client/BattleStateNetwork.js",
-		"Client/BattleStateUI.js"
+		"Client/ContactsClient.js"
 	],
 
 	imgs:{}
