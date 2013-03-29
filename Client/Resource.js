@@ -19,7 +19,7 @@ Resource = {
 		"Client/BattleStateMain.js",
 		"Client/BattleStateNetwork.js",
 		"Client/BattleStateUI.js",
-		// "Client/Schedule.js",
+		"Client/Schedule.js",
 
 		"Proto/Proto.js",
 

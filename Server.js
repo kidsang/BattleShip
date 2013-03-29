@@ -47,9 +47,7 @@ function onHttpRequest(request, response) {
 		<title>Battle Ship</title>\
 		<meta charset="UTF-8"/>\
 		';
-		if (__deploy) {
-			html += '<script>__deploy=true;</script>';
-		}
+		html += '<script>__deploy=' + __deploy + ';</script>';
 		html += '\
 		</head>\
 		<body id="body">\

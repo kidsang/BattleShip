@@ -3,6 +3,7 @@ BattleState.prototype.initializeUI = function() {
 	this.uiInitialized = true;
 	this.lastWeaponIndex = 0;
 	this.weaponTags = null;
+	this.uiSchedule = new Schedule();
 
 	var player = this.players[this.myid];
 	var ship = player.ship;
@@ -13,6 +14,7 @@ BattleState.prototype.initializeUI = function() {
 	statusGroup.setX(Constants.stageWidth);
 
 	var x = -50;
+	var showTime = 0;
 	// weapons
 	this.weaponTags = new Array(ship.weapons.length);
 	for (var i = 0; i < ship.weapons.length; ++i) {
@@ -39,9 +41,13 @@ BattleState.prototype.initializeUI = function() {
 		var tag = new WeaponTag(name, Resource.imgs[icon], weapon);
 		tag.group.setX(x);
 		tag.group.setY(46);
-		x -= 100;
+		tag.hide();
 		statusGroup.add(tag.group);
 		this.weaponTags[ri] = tag;
+		x -= 100;
+
+		this.uiSchedule.addTask(showTime, tag, tag.show, [true]);
+		showTime += 100;
 	}
 	this.weaponTags[0].setSelect(true);
 
@@ -50,13 +56,21 @@ BattleState.prototype.initializeUI = function() {
 	x -= 80;
 	armor.group.setX(x);
 	armor.group.setY(26);
+	armor.hide();
 	statusGroup.add(armor.group)
+	this.uiSchedule.addTask(showTime, armor, armor.show);
+	showTime += 100;
 
 	var shield = new HpBar(250, '盾');
 	x -= 280;
 	shield.group.setX(x);
 	shield.group.setY(26);
+	shield.hide();
 	statusGroup.add(shield.group);
+	this.uiSchedule.addTask(showTime, shield, shield.show);
+	showTime += 100;
+
+	this.uiSchedule.start();
 };
 
 BattleState.prototype.updateUI = function() {

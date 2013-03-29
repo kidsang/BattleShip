@@ -1,6 +1,7 @@
 MapClient = function(mapDef, world, layer) {
 	Map.call(this, mapDef, world);
-	
+	this.schedule = new Schedule();
+
 	var w = Constants.mapWidth;
 	var h = Constants.mapHeight;
 	var s = 5;
@@ -29,10 +30,13 @@ MapClient = function(mapDef, world, layer) {
 		var obstacle = new Obstacle(w, h, t);
 		obstacle.group.setX(x);
 		obstacle.group.setY(y);
+		obstacle.group.setVisible(false);
 		layer.add(obstacle.group);
 
-		obstacle.grow();
+		// obstacle.grow();
+		this.schedule.addTask(i * 100, obstacle, obstacle.grow);
 	}
+	this.schedule.start();
 
 };
 
@@ -114,6 +118,8 @@ Obstacle.prototype.grow = function() {
 	if (this.timer)
 		clearInterval(this.timer)
 
+	this.group.setOpacity(0);
+	this.group.setVisible(true);
 	this.curStep = 0;
 	var that = this;
 	this.timer = setInterval(function() {

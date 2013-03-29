@@ -470,11 +470,14 @@ HpBar = function(width_, text_, revert) {
 	this.bgWidth = bgWidth;
 	this.textSubfix = text_;
 	this.timer = null;
+	this.showTimer = null;
 };
 
 HpBar.prototype.finalize = function() {
 	if (this.timer)
 		clearInterval(this.timer);
+	if (this.showTimer)
+		clearInterval(this.showTimer);
 };
 
 HpBar.prototype.setPercent = function(percent, animated) {
@@ -505,6 +508,30 @@ HpBar.prototype._animate = function(host) {
 	host.fill.setFillPatternOffset(host.bgWidth / 4 - (1 - percent) * host.bgWidth / 2, 0);
 	host.text.setText(Math.floor(percent * 100) + '%' + host.textSubfix);
 	host.percent = percent;
+};
+
+HpBar.prototype.hide = function() {
+	this.group.setVisible(false);
+};
+
+HpBar.prototype.show = function() {
+	this.setPercent(0);
+	this.setPercent(1, true);
+	var group = this.group;
+	group.setOpacity(0);
+	group.setVisible(true);
+	if (this.showTimer)
+		clearInterval(this.showTimer);
+	this.showTimer = setInterval(function() {
+		var alpha = group.getOpacity();
+		alpha += 0.1;
+		if (alpha >= 1) {
+			alpha = 1;
+			clearInterval(this.showTimer);
+			this.showTimer = null;
+		}
+		group.setOpacity(alpha);
+	}, 1000/60);
 };
 
 // -------------------------------------------
