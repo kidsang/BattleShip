@@ -156,7 +156,7 @@ BattleField.prototype.playerLeave = function(id) {
 	if (this.numPlayer == 0)
 		Server.destroyBattleField(this.id);
 	else
-		syncPlayerList();
+		this.syncPlayerList();
 };
 
 BattleField._getNextId = function() {
