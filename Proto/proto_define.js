@@ -15,6 +15,13 @@ CREATE_BATTLE_FIELD_DONE
 
 REQUEST_BATTLE_FIELD_LIST
 
+// @param bfList {
+//  @param name 战场名字
+//  @param numPlayer 战场当前玩家数
+//  @param maxPlayer 战场最大玩家数
+//  @param obstacle 战场障碍物
+//  @param mode 战场模式
+// }
 RESPONSE_BATTLE_FIELD_LIST
 
 // @param id 战场id

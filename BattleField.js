@@ -1,3 +1,4 @@
+var Server = require('./Server.js');
 var Log = require('./Logger.js');
 var Player = require('./Player.js');
 var Ship = require('./Ship.js');
@@ -33,7 +34,18 @@ BattleField = function(config) {
 	this.name = config.name;
 	this.maxPlayer = config.maxPlayer;
 	this.mode = config.mode;
-	this.numObstacle = config.numObstacle;
+	this.obstacle = config.obstacle;
+	switch (config.obstacle) {
+		case '多':
+			this.numObstacle = 50;
+			break;
+		case '少':
+			this.numObstacle = 25;
+			break;
+		default:
+			this.numObstacle = 0;
+			break;
+	}
 	this.numPlayer = 0;
 	this.players = {};
 	this.bulletMgr = new BulletManager();
@@ -57,14 +69,14 @@ BattleField = function(config) {
 
 BattleField.prototype.finalize = function() {
 	clearInterval(this.mainLoop);
-
+	this.bulletMgr.finalize();
 	delete this.world;
-	for (var id in this.players) {
-		var player = this.players[id];
-		player.finalize();
-		var socket = player.socket;
-		// socket.off
-	}
+	// for (var id in this.players) {
+	// 	var player = this.players[id];
+	// 	player.finalize();
+	// 	var socket = player.socket;
+	// 	// socket.off
+	// }
 };
 
 BattleField.prototype.newPlayer = function(socket) {
@@ -125,7 +137,26 @@ BattleField.prototype.newPlayer = function(socket) {
 	});
 
 	socket.emit(Proto.NEW_JOIN, player.id, this.mapSeed, this.numObstacle);
+
+	++this.numPlayer;
 	Log.debug('player: ' + player.id + ' join battle field ' + this.id);
+};
+
+BattleField.prototype.playerLeave = function(id) {
+	var player = this.players[id];
+	var socket = player.socket;
+	socket.removeAllListeners(Proto.PLAYER_JOIN);
+	socket.removeAllListeners(Proto.REQUEST_FIRE);
+	socket.removeAllListeners(Proto.UPLOAD_POSITION);
+	player.finalize();
+	delete this.players[id];
+	--this.numPlayer;
+	Log.debug('Player leave: ' + this.id);
+
+	if (this.numPlayer == 0)
+		Server.destroyBattleField(this.id);
+	else
+		syncPlayerList();
 };
 
 BattleField._getNextId = function() {
@@ -143,14 +174,6 @@ BattleField._getNextColor = function() {
 	BattleField._nextColorIndex = (BattleField._nextColorIndex + 1) % BattleField._colors.length;
 	return color;
 };
-
-// BattleField.prototype.onPlayerLeave = function() {
-// 	var player = players[this.id];
-// 	player.finalize();
-// 	delete players[this.id];
-// 	syncPlayerList();
-// 	Log.debug('Player leave: ' + this.id);
-// }
 
 BattleField.prototype.broadcast = function() {
 	for (var id in this.players) {

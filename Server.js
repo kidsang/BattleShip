@@ -20,7 +20,6 @@ var io = require('socket.io').listen(app);
 
 
 var sockets = {};
-var players = {};
 var battleFields = {};
 
 function start(deploy) {
@@ -103,8 +102,20 @@ function onSocketsConnection(socket) {
 	socket.on(Proto.CREATE_BATTLE_FIELD, onCreateBattleField);
 	socket.on(Proto.REQUEST_BATTLE_FIELD_LIST, onRequestBattleFieldList);
 	socket.on(Proto.JOIN_BATTLE_FIELD, onJoinBattleField);
+	socket.on('disconnect', onSocketDisconnect);
 	sockets[socket.id] = socket;
 	Log.debug('New connection: ' + socket.id);
+}
+
+function onSocketDisconnect() {
+	for (var id in battleFields) {
+		var bf = battleFields[id];
+		if (bf.players[this.id]) {
+			bf.playerLeave(this.id);
+			break;
+		}
+	}
+	delete sockets[this.id];
 }
 
 function onCreateBattleField(msg) {
@@ -113,31 +124,41 @@ function onCreateBattleField(msg) {
 	config.name = msg.room;
 	config.maxPlayer = msg.numPlayer;
 	config.mode = msg.mode;
-	switch (msg.obstacle) {
-		case '多':
-			config.numObstacle = 50;
-			break;
-		case '少':
-			config.numObstacle = 25;
-			break;
-		default:
-			config.numObstacle = 0;
-			break;
-	}
+	config.obstacle = msg.obstacle;
 
 	var bf = new BattleField(config);
 	battleFields[bf.id] = bf;
 	this.emit(Proto.CREATE_BATTLE_FIELD_DONE, bf.id);
 }
 
-function onRequestBattleFieldList() {
+function destroyBattleField(id) {
+	var bf = battleFields[id];
+	bf.finalize();
+	delete battleFields[id];
+}
 
+function onRequestBattleFieldList() {
+	var bfList = {};
+	for (var id in battleFields) {
+		var bf = battleFields[id];
+		bfList[id] = {
+			'name':bf.name,
+			'numPlayer':bf.numPlayer,
+			'maxPlayer':bf.maxPlayer,
+			'obstacle':bf.obstacle,
+			'mode':bf.mode
+		};
+	}
+	this.emit(Proto.RESPONSE_BATTLE_FIELD_LIST, bfList);
 }
 
 function onJoinBattleField(id) {
 	var bf = battleFields[id];
 	if (bf) {
-		bf.newPlayer(this);
+		if (bf.numPlayer < bf.maxPlayer)
+			bf.newPlayer(this);
+		else
+			Log.error('battle field ' + id + ' has reached it\'s player limit');
 	}
 	else {
 		Log.error('Can not find battle field ' + id);
@@ -145,3 +166,4 @@ function onJoinBattleField(id) {
 }
 
 exports.start = start;
+exports.destroyBattleField = destroyBattleField;

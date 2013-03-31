@@ -867,7 +867,6 @@ HexSelector = function(titleText) {
 			fill.setFill('#f90');
 			that.unfold(true);
 		}
-		console.log(event.targetNode);
 	});
 
 	this.curIndex = 0;
@@ -1346,5 +1345,223 @@ WeaponTag.prototype.setSelect = function(selected) {
 	else {
 		this.fill.setFill('#000');
 		this.bg.setFill('#000');
+	}
+};
+
+// -------------------------------------------
+// RoomEntry
+RoomEntry = function(roomName, numPlayer, maxPlayer, obstacle, mode) {
+	var width = 700;
+	var height = 70;
+	this.width = width;
+	this.height = height;
+	var hw = width / 2;
+	var hh = height / 2;
+	var sqrt3 = Math.sqrt(3);
+	var points_ = [
+			-hw, -hh,
+			-hw-hh*sqrt3/3, 0,
+			-hw, hh,
+			hw, hh,
+			hw+hh*sqrt3/3, 0,
+			hw, -hh
+			];
+
+	this.group = new Kinetic.Group();
+
+	this.fill = new Kinetic.Polygon({
+		points:points_,
+		fill:'black',
+		opacity:0.5
+	});
+	this.group.add(this.fill);
+
+	this.border = new Kinetic.Polygon({
+		points:points_,
+		visible:false,
+		stroke:'black',
+		strokeWidth:2,
+		opacity:0.5
+	});
+	this.group.add(this.border);
+
+	this.title = new Kinetic.Text({
+		text:roomName,
+		fontSize:22,
+		fontFamily:'微软雅黑, 黑体',
+		fill:'white'
+	});
+	this.title.setOffset(300, this.title.getHeight() / 2);
+	this.group.add(this.title);
+
+	this.text = new Kinetic.Text({
+		text:'人数: '+numPlayer+'/'+maxPlayer+'  障碍: '+obstacle+'  模式： '+mode,
+		fontSize:18,
+		fontFamily:'微软雅黑, 黑体',
+		fill:'white'
+	});
+	this.text.setOffset(0, this.text.getHeight() / 2);
+	this.group.add(this.text);
+
+	var that = this;
+
+	this.group.on('mouseover', function() {
+		that.fill.setFill('#09f');
+	});
+
+	this.group.on('mouseout', function() {
+		that.fill.setFill('#000');
+	});
+
+	this.timer = null;
+	this.events = {};
+};
+
+RoomEntry.prototype.finalize = function() {
+	if (this.timer)
+		clearInterval(this.timer);
+}
+
+RoomEntry.prototype.show = function(animated) {
+	if (!animated) {
+		this.border.setVisible(false);
+		this.group.setVisible(true);
+		this.fill.setScale(1, 1);
+		this.fill.setOpacity(0.5);
+		this.text.setOpacity(1);
+		this.title.setOpacity(1);
+	}
+	else {
+		this.border.setVisible(true);
+		this.group.setVisible(true);
+		this.border.setOpacity(0);
+		this.fill.setOpacity(0);
+		this.text.setOpacity(0);
+		this.title.setOpacity(0);
+		this.border.setScale(0, 0);
+		this.fill.setScale(0, 0);
+		if (this.timer)
+			this._stopTimer();
+		this.timer = setInterval(this._showAnima, 1000 / 60, this)
+	}
+};
+
+RoomEntry.prototype._showAnima = function(host) {
+	// 边框
+	var borderScale = host.border.getScale().x;
+	var borderAlpha = host.border.getOpacity();
+	// 放大且淡入10帧
+	if (borderScale < 1) {
+		borderScale += 0.1;
+		if (borderScale > 1)
+			borderScale = 1;
+		host.border.setScale(borderScale, borderScale);
+		host.border.setOpacity(borderScale * 0.5);
+	}
+	// 淡出10帧
+	else if (borderAlpha > 0) {
+		borderAlpha -= 0.05;
+		host.border.setOpacity(borderAlpha);
+		if (borderAlpha < 0)
+			host.border.setVisible(false);
+	}
+
+	// 填充
+	if (borderScale > 0.75) {
+		var fillScale = host.fill.getScale().x;
+		var fillAlpha = host.fill.getOpacity();
+		// 放大且淡入10帧
+		if (fillScale < 1) {
+			fillScale += 0.1;
+			if (fillScale > 1)
+				fillScale = 1;
+			host.fill.setScale(fillScale, fillScale);
+			host.fill.setOpacity(fillScale * 0.5);
+		}
+		// 文字
+		else {
+			var textAlpha = host.text.getOpacity();
+			// 淡入10帧
+			if (textAlpha < 1) {
+				textAlpha += 0.1;
+				if (textAlpha >= 1) {
+					textAlpha = 1;
+					host._stopTimer();
+					if (host.events['show'])
+						host.events['show']();
+				}
+				host.text.setOpacity(textAlpha);
+				host.title.setOpacity(textAlpha);
+			}
+		}
+	}
+};
+
+RoomEntry.prototype.hide = function(animated) {
+	if (!animated) {
+		this.group.setVisible(false);
+	}
+	else {
+		this.border.setVisible(false);
+		this.group.setVisible(true);
+		this.fill.setOpacity(0.5);
+		this.text.setOpacity(1);
+		this.title.setOpacity(1);
+		this.fill.setScale(1, 1);
+		if (this.timer)
+			this._stopTimer();
+		this.timer = setInterval(this._hideAnima, 1000 / 60, this)
+	}
+};
+
+RoomEntry.prototype._hideAnima = function(host) {
+	// 文字
+	var textAlpha = host.text.getOpacity();
+	// 5帧淡出
+	if (textAlpha > 0) {
+		textAlpha -= 0.1;
+		if (textAlpha < 0)
+			textAlpha = 0;
+		host.text.setOpacity(textAlpha);
+		host.title.setOpacity(textAlpha);
+	}
+
+	// 填充
+	var fillScale = host.fill.getScale().x;
+	// 10帧缩小淡出
+	if (fillScale > 0) {
+		fillScale -= 0.1;
+		if (fillScale <= 0) {
+			fillScale = 0;
+			host._stopTimer();
+			host.group.setVisible(false);
+			if (host.events['hide'])
+				host.events['hide']();
+		}
+		host.fill.setScale(fillScale, fillScale);
+		host.fill.setOpacity(fillScale * 0.5);
+	}
+};
+
+RoomEntry.prototype._stopTimer = function() {
+	clearInterval(this.timer);
+	this.timer = null;
+};
+
+RoomEntry.prototype.on = function(event, callback) {
+	if (event == 'show' || event == 'hide') {
+		this.events[event] = callback;
+	}
+	else {
+		this.group.on(event, callback);
+	}
+};
+
+RoomEntry.prototype.off = function(event) {
+	if (event == 'show' || event == 'hide') {
+		delete this.events[event];
+	}
+	else {
+		this.group.off(event);
 	}
 };

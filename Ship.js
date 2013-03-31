@@ -1,6 +1,7 @@
 if (module) Box2D = require('./Box2dWeb-2.1.a.3.min.js');
 if (module) GameObject = require('./GameObject.js');
 if (module) Constants = require('./Constants.js');
+if (module) Utils = require('./Utils.js');
 
 if (module) Vulcan = require('./Vulcan.js');
 
@@ -35,13 +36,14 @@ Ship.prototype.getKinematicsPackage = function(createTime) {
 	var pkg = {};
 	// pkg.time = createTime;
 	var pos = this.body.GetPosition();
-	pkg.x = pos.x;
-	pkg.y = pos.y;
+	var toFixed = Utils.toFixed;
+	pkg.x = toFixed(pos.x, 2);
+	pkg.y = toFixed(pos.y, 2);
 	var vel = this.body.GetLinearVelocity();
-	pkg.vx = vel.x;
-	pkg.vy = vel.y;
-	pkg.angle = this.body.GetAngle() % (Math.PI * 2);
-	pkg.va = this.body.GetAngularVelocity();
+	pkg.vx = toFixed(vel.x, 2);
+	pkg.vy = toFixed(vel.y, 2);
+	pkg.angle = toFixed(this.body.GetAngle(), 2);
+	pkg.va = toFixed(this.body.GetAngularVelocity(), 2);
 	return pkg;
 };
 

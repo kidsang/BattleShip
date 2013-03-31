@@ -1,13 +1,15 @@
-CreateRoomState = function() {
+CreateRoomState = function(msg) {
 	var layer = new Kinetic.Layer();
 	this.layer = layer;
 	stage.add(layer);
 
-	var bg = new Kinetic.Image({
-		image:Resource.imgs['fighter_bg'],
-		opacity:0.5
-	});
-	layer.add(bg);
+	this.socket = msg.socket;
+
+	// var bg = new Kinetic.Image({
+	// 	image:Resource.imgs['fighter_bg'],
+	// 	opacity:0.5
+	// });
+	// layer.add(bg);
 
 	var numPlayer = new HexSelector('人数');
 	this.numPlayer = numPlayer;
@@ -84,7 +86,8 @@ CreateRoomState = function() {
 			'room':input.getValue(),
 			'numPlayer':numPlayer.getValue(),
 			'obstacle':obstacle.getValue(),
-			'mode':mode.getValue()
+			'mode':mode.getValue(),
+			'socket':that.socket
 		}
 		that.leave(msg);
 	});
@@ -105,7 +108,7 @@ CreateRoomState.prototype.step = function() {
 
 CreateRoomState.prototype.leave = function(msg) {
 	this.ok.on('hide', function() {
-		jumpTo(ConnectingState, msg);
+		jumpTo(JoinBattleState, msg);
 	});
 	this.numPlayer.hide(true);
 	this.obstacle.hide(true);

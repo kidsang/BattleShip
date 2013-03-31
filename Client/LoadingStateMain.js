@@ -68,7 +68,7 @@ LoadingState.prototype.increaseProgress = function() {
 	++this.done;
 	this.loading.setPercent(this.done / this.total);
 	if (this.done >= this.total) {
-		setTimeout("jumpTo(CreateRoomState)", 1000);
+		setTimeout("jumpTo(ConnectingState)", 1000);
 
 		// global
 		b2Vec2 = Box2D.Common.Math.b2Vec2;

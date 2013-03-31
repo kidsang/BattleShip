@@ -1,13 +1,15 @@
-CreateOrJoinState = function() {
+CreateOrJoinState = function(msg) {
 	var layer = new Kinetic.Layer();
 	this.layer = layer;
 	stage.add(layer);
 
-	var bg = new Kinetic.Image({
-		image:Resource.imgs['fighter_bg'],
-		opacity:0.5
-	});
-	layer.add(bg);
+	this.socket = msg.socket;
+
+	// var bg = new Kinetic.Image({
+	// 	image:Resource.imgs['fighter_bg'],
+	// 	opacity:0.5
+	// });
+	// layer.add(bg);
 
 	var create = new HexButton('创建战局', 25, 250);
 	this.create = create;
@@ -45,8 +47,9 @@ CreateOrJoinState.prototype.step = function() {
 };
 
 CreateOrJoinState.prototype.leave = function(nextState) {
+	var socket = this.socket;
 	this.create.on('hide', function() {
-		jumpTo(nextState);
+		jumpTo(nextState, {'socket':socket});
 	});
 	this.create.hide(true);
 	this.join.hide(true);

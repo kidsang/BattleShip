@@ -89,12 +89,13 @@ BattleState.prototype.step = function() {
 		if (ship.actions['fire']) {
 			var weapon = ship.weapons[ship.currentWeaponIndex];
 			if (weapon.canFire()) {
+				var toFixed = Utils.toFixed;
 				var pos = ship.body.GetPosition();
 				var msg = {
 					weapon:ship.currentWeaponIndex,
-					x:pos.x,
-					y:pos.y,
-					angle:ship.body.GetAngle()
+					x:toFixed(pos.x, 2),
+					y:toFixed(pos.y, 2),
+					angle:toFixed(ship.body.GetAngle(), 2)
 				};
 				this.socket.emit(Proto.REQUEST_FIRE, msg);
 			}

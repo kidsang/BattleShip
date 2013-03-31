@@ -13,15 +13,18 @@ Resource = {
 		"/socket.io/socket.io.js",
 
 		"Client/WelcomeStateMain.js",
+		"Client/ConnectingStateMain.js",
 		"Client/CreateOrJoinStateMain.js",
 		"Client/CreateRoomStateMain.js",
-		"Client/ConnectingStateMain.js",
+		"Client/JoinRoomStateMain.js",
+		"Client/JoinBattleStateMain.js",
 		"Client/BattleStateMain.js",
 		"Client/BattleStateNetwork.js",
 		"Client/BattleStateUI.js",
 		"Client/Schedule.js",
 
 		"Proto/Proto.js",
+		"Utils.js",
 
 		"MapGen.js",
 		"Map.js",

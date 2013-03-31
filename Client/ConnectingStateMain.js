@@ -23,45 +23,17 @@ ConnectingState = function(msg) {
  	});
  	layer.add(text);
 
-	this.msg = msg;
-	this.done = 0;
-	this.total = 4;
-
 	var host = '192.168.1.101';
 	if (__deploy)
 		host = 'http://battleship.chidongxi.me/';
 	var socket = io.connect(host);
-	this.socket = socket;
 
-	var that = this;
 	socket.on('connect', function() {
-		loading.setPercent(0.25);
-		if (msg.action == 'create') {
-			delete msg.action;
-			socket.emit(Proto.CREATE_BATTLE_FIELD, msg);
-			text.setText('正在创建战局...');
-		}
-		else {
-			joinBattle(msg.id);
-		}
-	});
-
-	var joinBattle = function(id) {
-		loading.setPercent(0.5);
-		text.setText('正在加入战局...');
-		socket.emit(Proto.JOIN_BATTLE_FIELD, id);
-	};
-	socket.on(Proto.CREATE_BATTLE_FIELD_DONE, joinBattle);
-
-	socket.on(Proto.NEW_JOIN, function(playerId, mapSeed, numObstacle) {
 		loading.setPercent(1);
-		var msg = {};
-		msg.socket = socket;
-		msg.playerId = playerId;
-		msg.mapSeed = mapSeed;
-		msg.numObstacle = numObstacle;
-		setTimeout(function(){jumpTo(BattleState, msg)}, 1000);
+		var msg = {'socket':socket};
+		setTimeout(function(){jumpTo(CreateOrJoinState, msg)}, 1000)
 	});
+
 };
 
 ConnectingState.prototype.finalize = function() {
@@ -72,6 +44,3 @@ ConnectingState.prototype.finalize = function() {
 ConnectingState.prototype.step = function() {
 	this.layer.draw();
 };
-
-// ConnectingState.prototype.leave = function(msg) {
-// };
