@@ -27,8 +27,8 @@ Weapon.prototype.fire = function() {
 	this.currentHeat += this.heatGenerated;
 }
 
-Weapon.prototype.coldDown = function() {
-	this.currentHeat -= 1 / Constants.frameRate * this.coldDownSpeed;
+Weapon.prototype.coldDown = function(secDiff) {
+	this.currentHeat -= secDiff * this.coldDownSpeed;
 	if (this.currentHeat < 0)
 		this.currentHeat = 0;
 }

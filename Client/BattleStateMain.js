@@ -2,6 +2,7 @@ BattleState = function(msg) {
 	this.myid = msg.playerId;
 	this.socket = msg.socket;
 	this.players = {};
+	this.myShip = undefined;
 	this.bulletMgr = new BulletManager();
 
 	this.layer = new Kinetic.Layer();
@@ -21,6 +22,16 @@ BattleState = function(msg) {
 	this.debugLayer = new Kinetic.Layer();
 	stage.add(this.debugLayer);
 
+	this.hitLayer = new Kinetic.Layer();
+	stage.add(this.hitLayer);
+	this.hitLayer.add(new Kinetic.Rect({
+		width:Constants.stageWidth,
+		height:Constants.stageHeight,
+		fill:'red',
+		opacity:0
+	}));
+	this.hitLayer.draw();
+
 	this.explodeMgr = new ExplodeManager(this.explodeLayer);
 
 	this.world = new b2World(new b2Vec2(0, 0), false);
@@ -33,18 +44,7 @@ BattleState = function(msg) {
 
 	var mapDef = MapGen.gen(msg.mapSeed, msg.numObstacle);
 	var map = new MapClient(mapDef, this.world, this.mapLayer);
-
-	var debugDraw = new b2DebugDraw();
-	debugDraw.SetSprite(this.debugLayer.getCanvas().getContext());
-	debugDraw.SetDrawScale(Constants.drawScale);
-	debugDraw.SetFillAlpha(0.3);
-	debugDraw.SetLineThickness(1.0);
-	debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
-	this.world.SetDebugDraw(debugDraw);
-
-	// this.mainLoopToken = setInterval(this.mainLoop, Constants.frameInterval);
-	// this.syncLoopToken = setInterval(this.syncLoop, Constants.posSyncInterval);
-
+	
 	this.initializeNetwork();
 	this.initializeControl();
 };
@@ -52,11 +52,6 @@ BattleState = function(msg) {
 BattleState.prototype.finalize = function() {
 	this.finalizeControl();
 	this.finalizeNetwork();
-
-	// clearInterval(BS.syncLoopToken);
-	// delete BS.syncLoopToken;
-	// clearInterval(BS.mainLoopToken);
-	// delete BS.mainLoopToken;
 
 	for (var id in this.players) {
 		var player = this.players[id];
@@ -68,48 +63,38 @@ BattleState.prototype.finalize = function() {
 	this.bulletMgr.finalize();
 
 	delete this.world;
+	this.hitLayer.destroy();
 	this.debugLayer.destroy();
 	this.uiLayer.destroy();
 	this.layer.destroy();
 };
 
 BattleState.prototype.step = function() {
+	this.nowTime = (new Date()).getTime();
+	if (!this.lastTime)
+		this.lastTime = this.nowTime;
+	var timeDiff = this.nowTime - this.lastTime;
+	var secDiff = timeDiff / 1000;
+	this.lastTime = this.nowTime;
 
 	this.bulletMgr.step();
 	this.explodeMgr.step();
 
-	this.world.Step(1 / Constants.frameRate, 1, 1);
+	this.world.Step(secDiff, 1, 1);
 	this.world.ClearForces();
 
-	if (this.players[this.myid]) {
-
-		var player = this.players[this.myid];
-		var ship = player.ship;
-		ship.updateKinematicsByAction();
-		if (ship.actions['fire']) {
-			var weapon = ship.weapons[ship.currentWeaponIndex];
-			if (weapon.canFire()) {
-				var toFixed = Utils.toFixed;
-				var pos = ship.body.GetPosition();
-				var msg = {
-					weapon:ship.currentWeaponIndex,
-					x:toFixed(pos.x, 2),
-					y:toFixed(pos.y, 2),
-					angle:toFixed(ship.body.GetAngle(), 2)
-				};
-				this.socket.emit(Proto.REQUEST_FIRE, msg);
-			}
-		}
-
+	if (this.myShip) {
+		var ship = this.myShip;
 		for (var index in ship.weapons) {
 			var weapon = ship.weapons[index];
-			weapon.coldDown();
+			weapon.coldDown(secDiff);
 		}
 	}
 
 	for (var id in this.players) {
 		var player = this.players[id];
 		var ship = player.ship;
+		ship.updateKinematicsByAction();
 		ship.updateSkin();
 	}
 
@@ -182,68 +167,3 @@ BattleState.prototype.scrollMap = function() {
 	this.layer.setY(y);
 };
 
-BattleState.prototype.initializeControl = function() {
-	var that = this;
-
-	Keyboard.onKeyDown(function(event) {
-		var player = that.players[that.myid];
-		var ship = player.ship;
-
-		var keyStr = null;
-		switch (event.keyCode) {
-			case 37:
-			keyStr = 'left';
-			break;
-			case 38:
-			keyStr = 'up';
-			break;
-			case 39:
-			keyStr = 'right';
-			break;
-			case 40:
-			keyStr = 'down';
-			break;
-			case 32:
-			keyStr = 'fire';
-			break;
-		}
-		if (keyStr != null) {
-			ship.applyAction(keyStr, true);
-		}
-		if (event.keyCode >= 49 && event.keyCode < 49 + ship.weapons.length) {
-			ship.currentWeaponIndex = event.keyCode - 49;
-		};
-	});
-
-	Keyboard.onKeyUp(function(event) {
-		var player = that.players[that.myid];
-		var ship = player.ship;
-
-		var keyStr = null;
-		switch (event.keyCode) {
-			case 37:
-			keyStr = 'left';
-			break;
-			case 38:
-			keyStr = 'up';
-			break;
-			case 39:
-			keyStr = 'right';
-			break;
-			case 40:
-			keyStr = 'down';
-			break;
-			case 32:
-			keyStr = 'fire';
-			break;
-		}
-		if (keyStr != null) {
-			ship.applyAction(keyStr, false);
-		}
-	});
-
-};
-
-BattleState.prototype.finalizeControl = function() {
-	Keyboard.clear();
-};

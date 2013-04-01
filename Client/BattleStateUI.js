@@ -49,7 +49,6 @@ BattleState.prototype.initializeUI = function() {
 		this.uiSchedule.addTask(showTime, tag, tag.show, [true]);
 		showTime += 100;
 	}
-	this.weaponTags[0].setSelect(true);
 
 	// // shield & armor
 	var armor = new HpBar(250, '甲', true);
@@ -80,10 +79,11 @@ BattleState.prototype.updateUI = function() {
 	var player = this.players[this.myid];
 	var ship = player.ship;
 
-	if (ship.currentWeaponIndex != this.lastWeaponIndex) {
-		this.weaponTags[this.lastWeaponIndex].setSelect(false);
-		this.weaponTags[ship.currentWeaponIndex].setSelect(true);
-		this.lastWeaponIndex = ship.currentWeaponIndex;
+	for (var i = 0; i < ship.weapons.length; ++i) {
+		if (ship.actions[i.toString()])
+			this.weaponTags[i].setSelect(true);
+		else 
+			this.weaponTags[i].setSelect(false);
 	}
 
 	for (var i in this.weaponTags) {

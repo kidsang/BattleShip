@@ -92,6 +92,34 @@ Ship.prototype.updateKinematicsByPredict = function(pkg) {
 
 };
 
+Ship.prototype.updateKinematicsByAction = function() {
+	var angularVelocity = 0;
+	if (this.actions['left']) {
+		angularVelocity -= this.angularVelocity;
+	}
+	if (this.actions['right']) {
+		angularVelocity += this.angularVelocity;
+	}
+	this.body.SetAngularVelocity(angularVelocity);
+
+	var velocity = this.body.GetLinearVelocity().Length();
+	if (this.actions['up']) {
+		velocity += this.acceleration;
+		if (velocity > this.maxVelocity)
+			velocity = this.maxVelocity;
+	}
+	else if (this.actions['down']) {
+		velocity -= this.acceleration;
+		if (velocity < this.minVelocity)
+			velocity = this.minVelocity;
+	}
+
+	var angle = this.body.GetAngle();
+	var vx = Math.cos(angle) * velocity;
+	var vy = Math.sin(angle) * velocity; 
+	this.body.SetLinearVelocity(new b2Vec2(vx, vy));
+};
+
 Ship.prototype.applyAction = function(action, isActive) {
 	this.actions[action] = isActive;
 };

@@ -7,9 +7,9 @@ Proto = {
 	NEW_JOIN:"6",
 	PLAYER_JOIN:"7",
 	SYNC_PLAYER_LIST:"8",
-	REQUEST_FIRE:"9",
-	FIRE:"10",
-	UPLOAD_POSITION:"11",
-	SYNC_POSITIONS:"12"
+	FIRE:"9",
+	UPLOAD_ACTION:"10",
+	UPLOAD_KINEMATICS:"11",
+	SYNC_KINEMATICS:"12"
 };
 if (module) module.exports = Proto;

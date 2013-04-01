@@ -84,7 +84,7 @@ function onHttpRequest(request, response) {
 							ct = 'text/plain';
 						response.writeHead(200, {'Content-Type':ct});
 						response.end(data);
-						Log.debug('Loaded ' + path);
+						// Log.debug('Loaded ' + path);
 					}
 				});
 			}

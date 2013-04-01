@@ -71,12 +71,6 @@ BattleField.prototype.finalize = function() {
 	clearInterval(this.mainLoop);
 	this.bulletMgr.finalize();
 	delete this.world;
-	// for (var id in this.players) {
-	// 	var player = this.players[id];
-	// 	player.finalize();
-	// 	var socket = player.socket;
-	// 	// socket.off
-	// }
 };
 
 BattleField.prototype.newPlayer = function(socket) {
@@ -106,34 +100,22 @@ BattleField.prototype.newPlayer = function(socket) {
 		that.syncPlayerList();
 	});
 
-	socket.on(Proto.REQUEST_FIRE, function(msg) {
-		var player = players[this.id];
-		var ship = player.ship;
-		var weapon = ship.weapons[msg.weapon];
-		if (weapon.canFire()) {
-			var bullet = weapon.fire(world, player.id, {
-				x:msg.x,
-				y:msg.y,
-				angle:msg.angle,
-				contactGroup:ship.contactGroup
-			});
-			that.bulletMgr.addBullet(bullet);
-			msg.id = this.id;
-			that.broadcast(Proto.FIRE, msg);
-		}
-
-	});
-
-	socket.on(Proto.UPLOAD_POSITION, function(msg) {
+	socket.on(Proto.UPLOAD_ACTION, function(action, isActive) {
 		var player = players[this.id];
 		if (!player)
 			return;
 		var ship = player.ship;
-		ship.updateKinematicsByPredict(msg);
+		ship.applyAction(action, isActive);
+	});
 
-		var shipList = {};
-		shipList[this.id] = msg;
-		that.broadcast(Proto.SYNC_POSITIONS, shipList);
+	socket.on(Proto.UPLOAD_KINEMATICS, function(action, isActive, pkg) {
+		var player = players[this.id];
+		if (!player)
+			return;
+		var ship = player.ship;
+		ship.updateKinematicsByPackage(pkg);
+		ship.applyAction(action, isActive);
+		that.broadcast(Proto.SYNC_KINEMATICS, this.id, action, isActive, pkg);
 	});
 
 	socket.emit(Proto.NEW_JOIN, player.id, this.mapSeed, this.numObstacle);
@@ -196,18 +178,54 @@ BattleField.prototype.syncPlayerList = function() {
 }
 
 BattleField.prototype.step = function() {
+	this.nowTime = (new Date()).getTime();
+	if (!this.lastTime)
+		this.lastTime = this.nowTime;
+	var timeDiff = this.nowTime - this.lastTime;
+	var secDiff = timeDiff / 1000;
+	this.lastTime = this.nowTime;
+
 	this.bulletMgr.step();
 
+	this.world.Step(secDiff, 1, 1);
+	this.world.ClearForces();
+
 	for (var id in this.players) {
-		var ship = this.players[id].ship;
+		var player = this.players[id];
+		var ship = player.ship;
+		ship.updateKinematicsByAction();
+
+		for (var i = 0; i < ship.weapons.length; ++i) {
+			if (ship.actions[i.toString()]) {
+				var weapon = ship.weapons[i];
+				if (weapon.canFire()) {
+					var toFixed = Utils.toFixed;
+					var pos = ship.body.GetPosition();
+					var msg = {
+						weapon:i,
+						'x':toFixed(pos.x, 2),
+						'y':toFixed(pos.y, 2),
+						'angle':toFixed(ship.body.GetAngle(), 2),
+						'id':id
+					};
+
+					var bullet = weapon.fire(this.world, id, {
+						'x':msg.x,
+						'y':msg.y,
+						'angle':msg.angle,
+						'contactGroup':ship.contactGroup
+					});
+					this.bulletMgr.addBullet(bullet);
+					this.broadcast(Proto.FIRE, msg);
+				}
+			}
+		}
+
 		for (var i in ship.weapons) {
 			var weapon = ship.weapons[i];
-			weapon.coldDown();
+			weapon.coldDown(secDiff);
 		}
 	}
-
-	this.world.Step(1 / Constants.frameRate, 1, 1);
-	this.world.ClearForces();
 }
 
 module.exports = BattleField;

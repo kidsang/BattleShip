@@ -1,7 +1,3 @@
-
-// @param name 玩家名称
-// SET_PLAYER_NAME
-
 // @param msg {
 //  @param room 房间名称
 //  @param numPlayer 玩家人数上限
@@ -48,13 +44,13 @@ PLAYER_JOIN
 // }]
 SYNC_PLAYER_LIST
 
-// @param msg {
-//  @param weapon 当前武器index
-//  @param x 当前舰船x坐标
-//  @param y 当前舰船y坐标
-//  @param angle 当前舰船角度
-// }
-REQUEST_FIRE
+// // @param msg {
+// //  @param weapon 当前武器index
+// //  @param x 当前舰船x坐标
+// //  @param y 当前舰船y坐标
+// //  @param angle 当前舰船角度
+// // }
+// REQUEST_FIRE
 
 // @param msg {
 //  @param id 开火的玩家id
@@ -65,7 +61,27 @@ REQUEST_FIRE
 // }
 FIRE
 
-// @param msg {
+// UPLOAD_POSITION
+
+// // @param shipList {
+// //	@param kinematics {
+// //	 @param x 
+// //	 @param y 
+// //	 @param vx 
+// //	 @param vy 
+// //	 @param angle 
+// //	 @param va 
+// //   }
+// // }
+// SYNC_POSITIONS
+
+// @param action
+// @param isActive
+UPLOAD_ACTION
+
+// @param action
+// @param isActive
+// @param pkg {
 // 	@param x 
 // 	@param y 
 // 	@param vx 
@@ -73,16 +89,17 @@ FIRE
 // 	@param angle 
 // 	@param va 
 // }
-UPLOAD_POSITION
+UPLOAD_KINEMATICS
 
-// @param shipList {
-//	@param kinematics {
-//	 @param x 
-//	 @param y 
-//	 @param vx 
-//	 @param vy 
-//	 @param angle 
-//	 @param va 
-//   }
+// @param id
+// @param action
+// @param isActive
+// @param pkg {
+// 	@param x 
+// 	@param y 
+// 	@param vx 
+// 	@param vy 
+// 	@param angle 
+// 	@param va 
 // }
-SYNC_POSITIONS
+SYNC_KINEMATICS

@@ -27,6 +27,7 @@ BattleState.prototype.initializeNetwork = function() {
 				that.players[id] = player;
 				if (id == that.myid) {
 					that.initializeUI();
+					that.myShip = ship;
 				}
 			}
 		}
@@ -57,25 +58,13 @@ BattleState.prototype.initializeNetwork = function() {
 		that.bulletMgr.addBullet(bullet);
 	});
 
-	socket.on(Proto.SYNC_POSITIONS, function(shipList) {
-		for (var id in shipList) {
-			if (id == that.myid)
-				continue;
-			var player = players[id];
-			if (!player)
-				continue;
-			var ship = player.ship;
-			ship.updateKinematicsByPredict(shipList[id]);
+	socket.on(Proto.SYNC_KINEMATICS, function(id, action, isActive, pkg) {
+		if (id != that.myid) {
+			var ship = players[id].ship;
+			ship.applyAction(action, isActive);
+			ship.updateKinematicsByPackage(pkg);
 		}
 	});
-
-	this.syncLoop = setInterval(function(){
-		if (!players[that.myid])
-			return;
-		var ship = players[that.myid].ship;
-		var msg = ship.getKinematicsPackage();
-		socket.emit(Proto.UPLOAD_POSITION, msg);
-	}, 1000/10);
 
 	socket.emit(Proto.PLAYER_JOIN, myname);
 };
