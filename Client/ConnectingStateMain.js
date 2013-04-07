@@ -23,7 +23,7 @@ ConnectingState = function(msg) {
  	});
  	layer.add(text);
 
-	var host = '192.168.1.100';
+	var host = '192.168.1.103';
 	if (__deploy)
 		host = 'http://battleship.chidongxi.me/';
 	var socket = io.connect(host);

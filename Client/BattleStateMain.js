@@ -3,6 +3,8 @@ BattleState = function(msg) {
 	this.socket = msg.socket;
 	this.players = {};
 	this.myShip = undefined;
+	this.servTimeDiff = 0;
+	this.delay = 0;
 	this.bulletMgr = new BulletManager();
 
 	this.layer = new Kinetic.Layer();
@@ -44,7 +46,7 @@ BattleState = function(msg) {
 
 	var mapDef = MapGen.gen(msg.mapSeed, msg.numObstacle);
 	var map = new MapClient(mapDef, this.world, this.mapLayer);
-	
+
 	this.initializeNetwork();
 	this.initializeControl();
 };
@@ -166,4 +168,3 @@ BattleState.prototype.scrollMap = function() {
 	this.layer.setX(x);
 	this.layer.setY(y);
 };
-

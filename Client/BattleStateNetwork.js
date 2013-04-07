@@ -39,6 +39,14 @@ BattleState.prototype.initializeNetwork = function() {
 		}
 	});
 
+	socket.on(Proto.RESPONSE_SYNC_TIME, function(servTime) {
+		var p1 = (new Date()).getTime();
+		that.delay = p1 - that._p0;
+		that.servTimeDiff = servTime + that.delay / 2 - p1;
+		console.log('delay:' + that.delay);
+		console.log('diff:' + that.servTimeDiff + '\n');
+	});
+
 	socket.on(Proto.FIRE, function(msg) {
 		var player = players[msg.id];
 		if (!player)
@@ -67,10 +75,16 @@ BattleState.prototype.initializeNetwork = function() {
 	});
 
 	socket.emit(Proto.PLAYER_JOIN, myname);
+
+	this.syncTimeTimer = setInterval(function() {
+		that._p0 = (new Date()).getTime();
+		socket.emit(Proto.REQUEST_SYNC_TIME);
+	}, 1000);
 };
 
 BattleState.prototype.finalizeNetwork = function() {
-	clearInterval(this.syncLoop);
+	// clearInterval(this.syncLoop);
+	clearInterval(this.syncTimeTimer);
 	this.socket.removeAllListeners();
 	delete this.socket;
 };

@@ -44,6 +44,11 @@ PLAYER_JOIN
 // }]
 SYNC_PLAYER_LIST
 
+REQUEST_SYNC_TIME
+
+// @servTime 服务器当前时间
+RESPONSE_SYNC_TIME
+
 // // @param msg {
 // //  @param weapon 当前武器index
 // //  @param x 当前舰船x坐标

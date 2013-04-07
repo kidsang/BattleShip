@@ -100,6 +100,10 @@ BattleField.prototype.newPlayer = function(socket) {
 		that.syncPlayerList();
 	});
 
+	socket.on(Proto.REQUEST_SYNC_TIME, function() {
+		this.emit(Proto.RESPONSE_SYNC_TIME, (new Date()).getTime())
+	});
+
 	socket.on(Proto.UPLOAD_ACTION, function(action, isActive) {
 		var player = players[this.id];
 		if (!player)
