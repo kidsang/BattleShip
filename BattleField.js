@@ -104,6 +104,16 @@ BattleField.prototype.newPlayer = function(socket) {
 		this.emit(Proto.RESPONSE_SYNC_TIME, (new Date()).getTime())
 	});
 
+	socket.on(Proto.REQUEST_MOVE, function(action, isActive) {
+		var player = players[this.id];
+		if (!player)
+			return;
+		var ship = player.ship;
+		ship.applyAction(action, isActive);
+		var pkg = ship.getKinematicsPackage();
+		that.broadcast(Proto.SYNC_KINEMATICS, this.id, action, isActive, pkg);
+	});
+
 	socket.on(Proto.UPLOAD_ACTION, function(action, isActive) {
 		var player = players[this.id];
 		if (!player)

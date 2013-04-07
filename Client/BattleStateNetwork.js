@@ -43,8 +43,8 @@ BattleState.prototype.initializeNetwork = function() {
 		var p1 = (new Date()).getTime();
 		that.delay = p1 - that._p0;
 		that.servTimeDiff = servTime + that.delay / 2 - p1;
-		console.log('delay:' + that.delay);
-		console.log('diff:' + that.servTimeDiff + '\n');
+		// console.log('delay:' + that.delay);
+		// console.log('diff:' + that.servTimeDiff + '\n');
 	});
 
 	socket.on(Proto.FIRE, function(msg) {
@@ -67,11 +67,11 @@ BattleState.prototype.initializeNetwork = function() {
 	});
 
 	socket.on(Proto.SYNC_KINEMATICS, function(id, action, isActive, pkg) {
-		if (id != that.myid) {
+		// if (id != that.myid) {
 			var ship = players[id].ship;
 			ship.applyAction(action, isActive);
 			ship.updateKinematicsByPackage(pkg);
-		}
+		// }
 	});
 
 	socket.emit(Proto.PLAYER_JOIN, myname);

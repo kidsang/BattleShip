@@ -46,3 +46,17 @@ Schedule.prototype.start = function() {
 		}
 	}, 1000 / 30);
 };
+
+Schedule.prototype.step = function(time) {
+	var tasks = this.tasks;
+	while (true) {
+		if (tasks.length == 0 || time < tasks[0].time) {
+			break;
+		}
+		else {
+			var t = tasks[0];
+			t.task.apply(t.that, t.args);
+			tasks.splice(0, 1);
+		}
+	}
+};

@@ -9,8 +9,10 @@ BattleState.prototype.initializeControl = function() {
 
 		if (event.keyCode >= 37 && event.keyCode < 41) {
 			var ctrlStr = ctrl[event.keyCode - 37];
-			ship.applyAction(ctrlStr, true);
-			that.socket.emit(Proto.UPLOAD_KINEMATICS, ctrlStr, true, ship.getKinematicsPackage());
+			that.schedule.addTask(that.nowTime + that.delay / 2, ship, ship.applyAction, [ctrlStr, true]);
+			that.socket.emit(Proto.REQUEST_MOVE, ctrlStr, true);
+			// ship.applyAction(ctrlStr, true);
+			// that.socket.emit(Proto.UPLOAD_KINEMATICS, ctrlStr, true, ship.getKinematicsPackage());
 		}
 
 		if (event.keyCode >= 49 && event.keyCode < 49 + ship.weapons.length) {
@@ -27,8 +29,10 @@ BattleState.prototype.initializeControl = function() {
 
 		if (event.keyCode >= 37 && event.keyCode < 41) {
 			var ctrlStr = ctrl[event.keyCode - 37];
-			ship.applyAction(ctrlStr, false);
-			that.socket.emit(Proto.UPLOAD_KINEMATICS, ctrlStr, false, ship.getKinematicsPackage());
+			that.schedule.addTask(that.nowTime + that.delay / 2, ship, ship.applyAction, [ctrlStr, false]);
+			that.socket.emit(Proto.REQUEST_MOVE, ctrlStr, false);
+			// ship.applyAction(ctrlStr, false);
+			// that.socket.emit(Proto.UPLOAD_KINEMATICS, ctrlStr, false, ship.getKinematicsPackage());
 		}
 
 		if (event.keyCode >= 49 && event.keyCode < 49 + ship.weapons.length) {

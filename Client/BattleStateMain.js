@@ -5,6 +5,9 @@ BattleState = function(msg) {
 	this.myShip = undefined;
 	this.servTimeDiff = 0;
 	this.delay = 0;
+	this.nowTime = 0;
+	this.lastTime = 0;
+	this.schedule = new Schedule();
 	this.bulletMgr = new BulletManager();
 
 	this.layer = new Kinetic.Layer();
@@ -79,6 +82,7 @@ BattleState.prototype.step = function() {
 	var secDiff = timeDiff / 1000;
 	this.lastTime = this.nowTime;
 
+	this.schedule.step(this.nowTime);
 	this.bulletMgr.step();
 	this.explodeMgr.step();
 
